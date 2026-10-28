@@ -15,17 +15,20 @@ import { loadSnapshot, saveSnapshot } from '../engine/persistence.js';
 import { project } from '../engine/project.js';
 import { TitleQueue } from '../engine/titler.js';
 import { IngestServer } from '../ingest/server.js';
+import { checkAddress, describeAddress } from './address.js';
 import { loadRoutineSlugs } from '../ingest/routines.js';
 import type { ThreadEvent, ThreadState } from '../shared/types.js';
 
 const TICK_MS = 1000;
 const SAVE_DEBOUNCE_MS = 2000;
+const ADDRESS_CHECK_MS = 5 * 60 * 1000;
 
 let win: BrowserWindow | null = null;
 let cfg: HudConfig = loadConfig();
 const engine = new StateEngine();
 let ingest: IngestServer | null = null;
 let ingestError: string | null = null;
+let addressWarning: string | null = null;
 let saveTimer: NodeJS.Timeout | null = null;
 
 /** States that earn a desktop notification when a thread enters them. */
@@ -47,6 +50,8 @@ function log(line: string): void {
  */
 function statusLine(): string {
   if (ingestError) return ingestError;
+  // A dead address outranks "listening": claiming to listen on it is the lie.
+  if (addressWarning) return addressWarning;
   const s = ingest?.stats;
   const where = cfg.tunnelHostname
     ? `Listening for your Claude sessions on ${cfg.tunnelHostname}`
@@ -58,11 +63,22 @@ function statusLine(): string {
   return `${where}${seen}${cloud}`;
 }
 
+async function refreshAddress(): Promise<void> {
+  if (!cfg.tunnelHostname) return;
+  const check = await checkAddress(cfg.tunnelHostname);
+  const next = describeAddress(check);
+  if (next !== addressWarning) {
+    log(`address check: ${check.kind}`);
+    addressWarning = next;
+    pushSnapshot();
+  }
+}
+
 function pushSnapshot(): void {
   if (!win || win.isDestroyed()) return;
   const snap = project(engine.all(), Date.now(), {
     showQuiet: cfg.showQuiet,
-    connected: ingest !== null && ingestError === null,
+    connected: ingest !== null && ingestError === null && addressWarning === null,
     statusLine: statusLine(),
   });
   win.webContents.send('hud:snapshot', snap);
@@ -352,6 +368,9 @@ app.whenReady().then(async () => {
 
   await startIngest();
   createWindow();
+
+  void refreshAddress();
+  setInterval(() => void refreshAddress(), ADDRESS_CHECK_MS);
 
   // One timer drives staleness and the ticking time-in-state readouts.
   setInterval(() => {

@@ -1,8 +1,44 @@
-# Where things stand — 2026-09-22
+# Where things stand — 2026-10-28
 
 **Read this first.** It is the fastest way to know what works, what is broken, and what to try next.
 
 ---
+
+## IN PROGRESS 2026-10-28 — moved to the Mac Studio M5; address renamed `agent-hud`
+
+CR replaced the Mac mini M4 with a Mac Studio M5 Ultra, using Migration
+Assistant. Migration copied `~/.agent-hud/config.json`, so the HUD kept
+announcing `Listening … on studio-minim4-pro.tailbc2fea.ts.net` — an address
+whose machine was gone. Google public DNS returned NXDOMAIN for it, and a
+cloud session's hooks logged `getaddrinfo ENOTFOUND`. Nothing checked.
+
+**Changed:**
+
+- **The address is named after the HUD, not the hardware.** The M5 is renamed
+  `agent-hud` in the Tailscale admin page, so the address is
+  `agent-hud.tailbc2fea.ts.net`. On the next machine swap, rename the new Mac
+  `agent-hud` and the plugin keeps working: no rebuild, no reinstall.
+- **The HUD now checks its own address** (`src/main/address.ts`). At start and
+  every 5 minutes it compares the saved hostname with `tailscale status
+  --json` → `Self.DNSName`. A mismatch, or Tailscale stopped/signed out,
+  replaces the "Listening…" line with a plain warning and turns the dot off.
+  If Tailscale can't be asked, it says nothing — never a false alarm.
+- **`scripts/move-to-new-mac.sh`** does the whole move: checks the name,
+  rebuilds, opens the port (`tailscale funnel --bg`), saves the address,
+  **rotates the ingest key** (the old one was printed into a cloud session's
+  log on 10-28), re-registers local hooks, installs the login item and
+  helpers, restarts the HUD, checks public DNS, and builds the plugin with
+  its hooks file on the clipboard.
+- **No more hardcoded `/Users/chris.rubin`.** `launch-hud.sh` and `update.sh`
+  read the project folder from `~/.agent-hud/project-root`; the login-item
+  plist is a template the move script fills in.
+- Local-hook registration moved out of `setup.sh` into
+  `scripts/install-local-hooks.sh`, so the key can be rotated without a
+  full setup.
+
+**Still to do (needs CR's hands):** rename the machine, run the script,
+reinstall the plugin by the card route, confirm a new Cowork thread lands.
+Not yet confirmed on the M5.
 
 ## UNEXPLAINED 2026-09-22 — Cowork went silent for a day and came back on its own
 
@@ -180,7 +216,7 @@ route. The card install from 08-31 was simply gone.
 | Clearing a finished tile | **Clear**, top-right corner of the tile. **Dismiss** on an errored one. |
 | Click-to-jump | Works: `claude://claude.ai/cowork/<cse_id>` opens the exact thread. |
 | Ingest address | Tailscale Funnel; the hostname is `tunnelHostname` in `~/.agent-hud/config.json`. Cert valid to 26 Nov 2026. |
-| Tests | 82 passing (`npm test`). |
+| Tests | 87 passing (`npm test`). |
 
 ## RESOLVED 2026-08-31 — install the plugin via `create-cowork-plugin`, not "Upload plugin"
 

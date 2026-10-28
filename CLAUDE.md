@@ -6,7 +6,7 @@ You are building a production tool for one operator, CR. He does not write code 
 
 **Phase 1 shipped and largely accepted. Read `docs/CURRENT-STATE.md` FIRST** — it says what works, what is broken, and what to try, and it will save you rediscovering all of it.
 
-Short version as of 2026-08-28: the HUD runs, local sessions report correctly, click-through to a Cowork thread works (`claude://claude.ai/cowork/<cse_id>`), and 73 tests pass. New Cowork threads stopped arriving after repeated plugin reinstalls; the cause appears to be account-to-cloud plugin sync, not anything in this repo.
+Short version as of 2026-10-28: the HUD runs, local sessions report, click-through to a Cowork thread works, and 87 tests pass. CR moved to a Mac Studio M5; the Tailscale address is being renamed to `agent-hud` (machine-independent) via `scripts/move-to-new-mac.sh`. See the top section of CURRENT-STATE.md.
 
 Phase 0's findings document contains **four conclusions that were later proven wrong**, two of them false negatives on CR's primary use case. Its corrections are marked inline. Treat every negative in that file as an unsuccessful search rather than a proven impossibility.
 

@@ -16,7 +16,10 @@ set -uo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-ROOT="/Users/chris.rubin/code/agent-hud"
+# Where the project lives. Recorded by scripts/move-to-new-mac.sh, because this
+# copy runs from ~/.agent-hud and can't find the project relative to itself.
+ROOT="$(cat "$HOME/.agent-hud/project-root" 2>/dev/null)"
+[ -n "$ROOT" ] || ROOT="$HOME/code/agent-hud"
 HUD_DIR="$HOME/.agent-hud"
 PORT=43200
 

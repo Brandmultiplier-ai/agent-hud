@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- A template. scripts/move-to-new-mac.sh fills in __HOME__ and installs it
+     as ~/Library/LaunchAgents/com.brandmultiplier.agent-hud.plist. -->
 <plist version="1.0">
 <dict>
   <key>Label</key>
@@ -8,7 +10,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/chris.rubin/.agent-hud/launch-hud.sh</string>
+    <string>__HOME__/.agent-hud/launch-hud.sh</string>
   </array>
 
   <key>RunAtLoad</key>
@@ -28,8 +30,8 @@
   <string>Interactive</string>
 
   <key>StandardOutPath</key>
-  <string>/Users/chris.rubin/.agent-hud/launchd.log</string>
+  <string>__HOME__/.agent-hud/launchd.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/chris.rubin/.agent-hud/launchd.log</string>
+  <string>__HOME__/.agent-hud/launchd.log</string>
 </dict>
 </plist>
